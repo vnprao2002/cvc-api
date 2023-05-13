@@ -1,0 +1,11 @@
+﻿namespace CVC_Project.Model.Home
+{
+    public class SubcateDto
+    {
+        public int Id { get; set; }
+        public string Url { get; set; }
+        public string SubName { get; set; }
+        public string ProductName { get; set; }
+        public byte Status { get; set; }
+    }
+}
