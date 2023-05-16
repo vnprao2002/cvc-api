@@ -179,15 +179,17 @@ namespace CVC_Project.Controllers
             }
 
             // Tăng số lượt view của sản phẩm lên 1
-            StringBuilder sb = new StringBuilder(product.View);
-            sb.Append("1");
-            product.View = sb.ToString();
+            int viewCount = Convert.ToInt32(product.View);
+            viewCount++;
+            product.View = viewCount.ToString();
 
             // Lưu thay đổi vào cơ sở dữ liệu
             await _context.SaveChangesAsync();
 
-            return Ok("View count increased successfully.");
+            return Ok(new { viewCount = product.View });
         }
+
+
         [HttpGet("SimilarProducts/{subcateid}")]
         public async Task<ActionResult<IEnumerable<Product>>> GetSimilarProducts(int subcateid)
         {
@@ -206,6 +208,93 @@ namespace CVC_Project.Controllers
 
             return Ok(similarProducts);
         }
+        [HttpGet("TopViewed")]
+        public async Task<ActionResult<PaginationResult<Product>>> GetTopViewedProducts(int page = 1, int pageSize = 20)
+        {
+            var products = await _context.Products
+                .OrderByDescending(p => p.View)
+                .ToListAsync();
+
+            var totalItems = products.Count;
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var paginatedProducts = products
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var paginationResult = new PaginationResult<Product>
+            {
+                Items = paginatedProducts,
+                TotalPages = totalPages
+            };
+
+            return Ok(paginationResult);
+        }
+        // PUT: api/Products/UpdateStatus
+/*        [HttpPut("UpdateStatus")]
+        public async Task<IActionResult> UpdateProductStatus()
+        {
+            // Lấy 100 sản phẩm có lượt xem nhiều nhất và cập nhật trạng thái thành 1
+            var topViewedProducts = await _context.Products
+                .OrderByDescending(p => p.View)
+                .Take(100)
+                .ToListAsync();
+
+            foreach (var product in topViewedProducts)
+            {
+                product.Status = 1;
+            }
+
+            // Cập nhật trạng thái của các sản phẩm còn lại thành 0
+            var otherProducts = await _context.Products
+                .Except(topViewedProducts)
+                .ToListAsync();
+
+            foreach (var product in otherProducts)
+            {
+                product.Status = 0;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }*/
+        // PUT: api/Products/UpdateStatus
+        [HttpPut("UpdateStatus")]
+        public async Task<IActionResult> UpdateProductStatus()
+        {
+            // Lấy 100 sản phẩm có lượt xem nhiều nhất và cập nhật trạng thái thành 1
+            var topViewedProducts = await _context.Products
+                .OrderByDescending(p => p.View)
+                .Take(100)
+                .ToListAsync();
+
+            foreach (var product in topViewedProducts)
+            {
+                if (product.Status != 2)
+                {
+                    product.Status = 1;
+                }
+            }
+
+            // Cập nhật trạng thái của các sản phẩm còn lại thành 0
+            var otherProducts = await _context.Products
+                .ToListAsync();
+
+            foreach (var product in topViewedProducts.Concat(otherProducts).Distinct())
+            {
+                if (product.Status != 2 && product.Status !=1)
+                {
+                    product.Status = 0;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
 
 
 
