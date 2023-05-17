@@ -63,7 +63,6 @@ namespace CVC_Project.Controllers
             var relatedProducts = allProducts
                 .Where(p =>
                     RemoveVietnameseDiacritics(p.Name.ToLower()).Contains(normalizedKeyword) ||
-                    RemoveVietnameseDiacritics(p.FullDesc.ToLower()).Contains(normalizedKeyword) ||
                     RemoveVietnameseDiacritics(p.Model.ToLower()).Contains(normalizedKeyword) ||
                     RemoveVietnameseDiacritics(p.Serial.ToLower()).Contains(normalizedKeyword)
                 )

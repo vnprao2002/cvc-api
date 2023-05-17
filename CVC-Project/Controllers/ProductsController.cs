@@ -298,6 +298,54 @@ namespace CVC_Project.Controllers
         }
 
 
+        [HttpPost("AddToRecentlyViewed")]
+        public IActionResult AddToRecentlyViewed(int productId)
+        {
+            // Lấy danh sách sản phẩm đã xem qua từ cookies (nếu có)
+            List<int> viewedProductIds = HttpContext.Request.Cookies["ViewedProducts"]
+                ?.Split(',')
+                .Select(int.Parse)
+                .ToList() ?? new List<int>();
+
+            // Thêm productId vào danh sách đã xem qua
+            if (!viewedProductIds.Contains(productId))
+            {
+                viewedProductIds.Insert(0, productId);
+                if (viewedProductIds.Count > 5)
+                {
+                    viewedProductIds.RemoveAt(5); // Giới hạn danh sách chỉ có 5 sản phẩm
+                }
+            }
+
+            // Lưu danh sách đã xem qua vào cookies
+            string cookieValue = string.Join(",", viewedProductIds);
+            HttpContext.Response.Cookies.Append("ViewedProducts", cookieValue);
+
+            return NoContent();
+        }
+
+        [HttpGet("RecentlyViewed")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetRecentlyViewedProducts()
+        {
+            // Lấy danh sách sản phẩm đã xem qua từ cookies (nếu có)
+            List<int> viewedProductIds = HttpContext.Request.Cookies["ViewedProducts"]
+                ?.Split(',')
+                .Select(int.Parse)
+                .ToList() ?? new List<int>();
+
+            // Truy vấn thông tin sản phẩm từ cơ sở dữ liệu
+            var products = await _context.Products
+                .ToListAsync();
+
+            // Sắp xếp danh sách sản phẩm theo thứ tự đã xem
+            var sortedProducts = viewedProductIds
+                .Select(id => products.FirstOrDefault(p => p.Id == id))
+                .Where(p => p != null)
+                .ToList();
+
+            return Ok(sortedProducts);
+        }
+
 
 
         private bool ProductExists(int id)
