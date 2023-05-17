@@ -10,8 +10,10 @@ using System.Text;
 
 namespace CVC_Project.Controllers
 {
-    [Route("api/[controller]")]
+
     [ApiController]
+    [Route("api/products")]
+
     public class ProductsController : ControllerBase
     {
         private readonly ShopDbContext _context;
